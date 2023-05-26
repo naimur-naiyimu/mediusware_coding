@@ -1,0 +1,142 @@
+ {% comment %} {% extends 'backend/base.html' %} {% endcomment %}
+
+{% comment %} {% block title %} Product List {% endblock %} {% endcomment %}
+
+{% block content %}
+
+<div class="card">
+    <form action="{% url 'product:product_list' %}" method="GET" class="card-header">
+        <div class="form-row justify-content-end align-items-center">
+            <div class="col-md-2">
+                <input type="text" name="title" placeholder="Product Title" class="form-control" value="{{ request.GET.title }}">
+            </div>
+            <div class="col-md-2">
+                <select name="variant" class="form-control">
+                    <option value="" {% if not request.GET.variant %}selected{% endif %}>--Select A Variant--</option>
+                    {% for variant in variants %}
+                        <option value="{{ variant.title }}" {% if request.GET.variant == variant.title %}selected{% endif %}>{{ variant.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Price Range</span>
+                    </div>
+                    <input type="text" name="price_from" aria-label="First name" placeholder="From" class="form-control" value="{{ request.GET.price_from }}">
+                    <input type="text" name="price_to" aria-label="Last name" placeholder="To" class="form-control" value="{{ request.GET.price_to }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date" placeholder="Date" class="form-control" value="{{ request.GET.date }}">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary float-right"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<!-- Display the filtered products -->
+{% for product in products %}
+    <div>{{ product.title }}</div>
+{% empty %}
+    <p>No products found.</p>
+{% endfor %}
+
+<style>
+  .center-align {
+    text-align: center;
+  }
+  .edit-button {
+    background-color: green;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .row-divider {
+    border-top: 0.5px solid black;
+  }
+  .full-width {
+    width: 100%;
+  }
+</style>
+
+<table class="full-width">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Title</th>
+      <th>Description</th>
+      <th>Variant</th>
+      <th></th>
+      <th></th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in page_obj %}
+      <tr class="row-divider">
+        <td class="center-align">{{ forloop.counter }}</td>
+        <td class="center-align">{{ product.title }}</td>
+        <td class="center-align">{{ product.description }}</td>
+        <td class="center-align">
+          {% for variant in product.productvariant_set.all %}
+            {{ variant.variant_title }}
+          {% endfor %}
+        </td>
+        <td class="center-align">Price: {{ product.productvariantprice_set.first.price }}</td>
+        <td class="center-align">Stock: {{ product.productvariantprice_set.first.stock }}</td>
+        <td class="center-align">
+          <button class="edit-button">Edit</button>
+        </td>
+      </tr>
+    <tr>
+        <td colspan="7" class="row-divider"></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="data-summary" style="float: left;">
+  Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} out of {{ page_obj.paginator.count }} products.
+</div>
+
+
+
+
+{% if page_obj %}
+  {% if page_obj.has_other_pages %}
+    <div class="btn-group" role="group" style="float: right;" aria-label="Item pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline-primary" style="border-color: black;">&laquo;</a>
+      {% endif %}
+
+      {% for page_number in page_obj.paginator.page_range %}
+        {% if page_obj.number == page_number %}
+          <button class="btn btn-primary active" style="background-color: blue; color: white; border-color: black;">
+            <span>{{ page_number }}</span>
+          </button>
+        {% else %}
+          <a href="?page={{ page_number }}" class="btn btn-outline-primary" style="border-color: black; color: black; background-color: white;">{{ page_number }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline-primary" style="border-color: black;">&raquo;</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% else %}
+  <p>No items found.</p>
+{% endif %}
+
+
+
+
+{% endblock %} 
+
+
